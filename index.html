@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offboarding Experience Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pwc-orange: #d04a02;
+            --pwc-orange-light: #e8600a;
+            --pwc-orange-bg: #fef7f4;
+            --pwc-burgundy: #7c2d12;
+            --pwc-dark: #1e293b;
+            --pwc-gray: #475569;
+            --pwc-gray-light: #94a3b8;
+            --pwc-bg: #f1f5f9;
+            --pwc-white: #ffffff;
+            --pwc-green: #16a34a;
+            --pwc-green-bg: #f0fdf4;
+            --pwc-red: #dc2626;
+            --pwc-red-bg: #fef2f2;
+            --pwc-gold: #ca8a04;
+            --pwc-gold-bg: #fffbeb;
+            --border: #e2e8f0;
+            --radius: 12px;
+            --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-width: 320px;
+            background: var(--pwc-bg);
+            color: var(--pwc-dark);
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            line-height: 1.55;
+            -webkit-font-smoothing: antialiased;
+        }
+        button, select { font: inherit; }
+        button:focus-visible, select:focus-visible {
+            outline: 3px solid rgba(208,74,2,.24);
+            outline-offset: 2px;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            min-height: 54px;
+            padding: 0 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            background: var(--pwc-orange);
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+        }
+        .brand {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: -.2px;
+            white-space: nowrap;
+        }
+        .brand span {
+            margin-left: 10px;
+            font-size: 12px;
+            font-weight: 400;
+            opacity: .76;
+        }
+        .tabs { display: flex; gap: 6px; }
+        .tab-btn {
+            padding: 7px 18px;
+            border: 0;
+            border-radius: 6px;
+            color: #fff;
+            background: rgba(255,255,255,.18);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: .2px;
+            cursor: pointer;
+            transition: background .15s, color .15s;
+        }
+        .tab-btn:hover { background: rgba(255,255,255,.3); }
+        .tab-btn.active { color: var(--pwc-orange); background: #fff; }
+
+        .filters {
+            position: sticky;
+            top: 54px;
+            z-index: 90;
+            padding: 12px 40px;
+            display: flex;
+            align-items: flex-end;
+            gap: 20px;
+            flex-wrap: wrap;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+        }
+        .filter-group label {
+            display: block;
+            margin-bottom: 4px;
+            color: var(--pwc-gray-light);
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+        }
+        .filter-group select {
+            min-width: 155px;
+            padding: 8px 32px 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--pwc-dark);
+            background: #f8fafc;
+            font-size: 13px;
+        }
+        .filter-group select:focus { border-color: var(--pwc-orange); background: #fff; }
+        .clear-btn {
+            margin-left: auto;
+            padding: 8px 18px;
+            border: 1.5px solid var(--pwc-orange);
+            border-radius: 8px;
+            color: var(--pwc-orange);
+            background: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background .15s, color .15s;
+        }
+        .clear-btn:hover { color: #fff; background: var(--pwc-orange); }
+
+        .page {
+            display: none;
+            max-width: 1420px;
+            margin: 0 auto;
+            padding: 30px 40px 48px;
+        }
+        .page.active { display: block; }
+        .page-intro {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .eyebrow {
+            margin-bottom: 4px;
+            color: var(--pwc-orange);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.15px;
+            text-transform: uppercase;
+        }
+        h1 { font-size: 24px; letter-spacing: -.6px; }
+        .intro-copy { max-width: 680px; color: var(--pwc-gray); font-size: 12px; }
+        .sample-note {
+            flex: 0 0 auto;
+            padding: 8px 12px;
+            border: 1px solid #fed7aa;
+            border-radius: 8px;
+            color: #9a3412;
+            background: #fff7ed;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .section-label {
+            margin: 30px 0 16px;
+            padding-left: 14px;
+            border-left: 4px solid var(--pwc-orange);
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 20px;
+        }
+        .hero-card {
+            min-height: 190px;
+            padding: 30px 28px;
+            border-radius: var(--radius);
+            color: #fff;
+            background: linear-gradient(145deg, #7c2d12 0%, #9a3412 100%);
+        }
+        .hero-card h2 {
+            margin-bottom: 24px;
+            color: rgba(255,255,255,.78);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            text-align: center;
+        }
+        .hero-stat { padding: 4px 10px; }
+        .hero-stat + .hero-stat { border-left: 1px solid rgba(255,255,255,.14); }
+        .hero-stat .value {
+            display: block;
+            color: #f8fafc;
+            font-size: 36px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -.7px;
+        }
+        .hero-stat.positive .value { color: #4ade80; }
+        .hero-stat.accent .value { color: #fbbf24; }
+        .hero-stat .label {
+            display: block;
+            margin-top: 7px;
+            color: rgba(255,255,255,.72);
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: .45px;
+            text-transform: uppercase;
+        }
+        .hero-foot {
+            margin-top: 20px;
+            padding-top: 13px;
+            border-top: 1px solid rgba(255,255,255,.18);
+            color: rgba(255,255,255,.72);
+            font-size: 11px;
+        }
+        .mini-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .mini-kpi, .chart-card, .table-card, .guide-card {
+            border-radius: var(--radius);
+            background: #fff;
+            box-shadow: var(--shadow);
+        }
+        .mini-kpi { padding: 20px 18px; }
+        .mini-kpi .label {
+            color: var(--pwc-gray);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+        }
+        .mini-kpi .value {
+            margin-top: 7px;
+            font-size: 31px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .mini-kpi .sub { margin-top: 7px; color: var(--pwc-gray-light); font-size: 10px; }
+        .mini-kpi.green .value { color: var(--pwc-green); }
+        .mini-kpi.orange .value { color: var(--pwc-orange); }
+        .mini-kpi.gold .value { color: var(--pwc-gold); }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1.35fr 1fr;
+            gap: 20px;
+        }
+        .chart-card { padding: 22px 24px; min-height: 320px; }
+        .chart-title {
+            margin-bottom: 4px;
+            text-align: center;
+            color: var(--pwc-gray);
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .chart-subtitle {
+            margin-bottom: 14px;
+            text-align: center;
+            color: var(--pwc-gray-light);
+            font-size: 9px;
+        }
+        .chart-wrap { position: relative; height: 245px; }
+
+        .table-card { margin-bottom: 24px; padding: 22px 24px; }
+        .table-header {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .table-header h3 { font-size: 14px; }
+        .count-pill {
+            padding: 4px 12px;
+            border-radius: 20px;
+            color: var(--pwc-gray);
+            background: var(--pwc-bg);
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .table-scroll {
+            max-height: 420px;
+            overflow: auto;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        thead { position: sticky; top: 0; z-index: 1; background: var(--pwc-dark); }
+        th {
+            padding: 12px 14px;
+            color: rgba(255,255,255,.85);
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: .6px;
+            text-align: left;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        td {
+            padding: 11px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            color: var(--pwc-gray);
+            white-space: nowrap;
+        }
+        tbody tr:nth-child(even) { background: #fafbfd; }
+        tbody tr:hover { background: var(--pwc-orange-bg); }
+        td:first-child { color: var(--pwc-dark); font-weight: 600; }
+        .status-pill {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            color: var(--pwc-green);
+            background: var(--pwc-green-bg);
+            font-size: 9px;
+            font-weight: 700;
+        }
+        .score-pill {
+            display: inline-block;
+            min-width: 36px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            color: #9a3412;
+            background: var(--pwc-orange-bg);
+            font-size: 10px;
+            font-weight: 800;
+            text-align: center;
+        }
+        .empty-state { padding: 36px; color: var(--pwc-gray-light); text-align: center; }
+
+        .guide-card {
+            margin-bottom: 24px;
+            padding: 22px 24px;
+            border: 1px solid var(--border);
+        }
+        .guide-head {
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .guide-head h3 { font-size: 14px; }
+        .guide-head p { margin-top: 4px; max-width: 760px; color: var(--pwc-gray); font-size: 11px; }
+        .guide-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px 26px;
+        }
+        .guide-item { padding-left: 14px; border-left: 3px solid var(--pwc-orange-bg); }
+        .guide-term {
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .guide-where {
+            padding: 2px 8px;
+            border-radius: 20px;
+            color: var(--pwc-orange);
+            background: var(--pwc-orange-bg);
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing: .7px;
+            text-transform: uppercase;
+        }
+        .guide-desc { color: var(--pwc-gray); font-size: 11px; }
+        .guide-now { margin-top: 7px; color: var(--pwc-gray-light); font-size: 10px; }
+        .guide-now strong { color: var(--pwc-dark); font-weight: 700; }
+
+        footer {
+            max-width: 1420px;
+            margin: 0 auto;
+            padding: 0 40px 28px;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            color: var(--pwc-gray-light);
+            font-size: 9px;
+        }
+
+        @media (max-width: 960px) {
+            .summary-grid, .chart-grid { grid-template-columns: 1fr; }
+            .topbar, .filters { padding-left: 22px; padding-right: 22px; }
+            .page { padding-left: 22px; padding-right: 22px; }
+            .guide-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 680px) {
+            .topbar { position: static; padding: 10px 16px; align-items: flex-start; flex-direction: column; gap: 8px; }
+            .brand span { display: block; margin: 1px 0 0; }
+            .tabs { width: 100%; }
+            .tab-btn { flex: 1; }
+            .filters { position: static; padding: 12px 16px; gap: 10px; }
+            .filter-group { width: calc(50% - 5px); }
+            .filter-group select { width: 100%; min-width: 0; }
+            .clear-btn { width: 100%; margin-left: 0; }
+            .page { padding: 24px 16px 36px; }
+            .page-intro { align-items: flex-start; flex-direction: column; }
+            .hero-stats { grid-template-columns: 1fr; text-align: left; }
+            .hero-stat { padding: 10px 0; }
+            .hero-stat + .hero-stat { border-left: 0; border-top: 1px solid rgba(255,255,255,.14); }
+            .mini-grid { grid-template-columns: 1fr; }
+            .chart-card { padding: 18px 14px; }
+            .guide-card { padding: 18px 16px; }
+            .guide-grid { grid-template-columns: 1fr; gap: 16px; }
+            footer { padding-left: 16px; padding-right: 16px; flex-direction: column; }
+        }
+        @media print {
+            .topbar, .filters { position: static; }
+            .filters, .tabs, .clear-btn { display: none; }
+            body { background: #fff; }
+            .page { max-width: none; padding: 20px; }
+            .page:not(.active) { display: none; }
+            .chart-card, .table-card, .mini-kpi, .guide-card, .guide-item { break-inside: avoid; box-shadow: none; }
+            .chart-card, .table-card, .mini-kpi, .guide-card { border: 1px solid var(--border); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">Offboarding Experience <span>| Roster Insights</span></div>
+        <nav class="tabs" aria-label="Dashboard views">
+            <button class="tab-btn active" data-tab="resource" type="button">Resource feedback</button>
+            <button class="tab-btn" data-tab="engagement" type="button">Engagement experience</button>
+        </nav>
+    </header>
+
+    <section class="filters" aria-label="Dashboard filters">
+        <div class="filter-group">
+            <label for="projectFilter">Project</label>
+            <select id="projectFilter"><option value="All">All projects</option></select>
+        </div>
+        <div class="filter-group">
+            <label for="trackFilter">Track / module</label>
+            <select id="trackFilter"><option value="All">All tracks</option></select>
+        </div>
+        <div class="filter-group">
+            <label for="roleFilter">Respondent role</label>
+            <select id="roleFilter">
+                <option value="All">All roles</option>
+                <option value="Project Lead">Project Lead</option>
+                <option value="Internal Resource">Internal Resource</option>
+            </select>
+        </div>
+        <button class="clear-btn" id="clearFilters" type="button">Clear filters</button>
+    </section>
+
+    <main>
+        <section class="page active" id="resourcePage">
+            <div class="page-intro">
+                <div>
+                    <div class="eyebrow">Roster perspective</div>
+                    <h1>Resource feedback</h1>
+                    <p class="intro-copy">Project-lead feedback on resource performance, future-fit, and overall engagement experience.</p>
+                </div>
+                <div class="sample-note">Small sample · <span id="resourceSample">2</span> responses</div>
+            </div>
+
+            <div class="summary-grid">
+                <article class="hero-card">
+                    <h2>Resource feedback snapshot</h2>
+                    <div class="hero-stats">
+                        <div class="hero-stat positive">
+                            <span class="value" id="resourceCount">2</span>
+                            <span class="label">Reviews</span>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="value" id="resourceAvg">4.0</span>
+                            <span class="label">Competency score</span>
+                        </div>
+                        <div class="hero-stat accent">
+                            <span class="value" id="resourceRecScore">8.0</span>
+                            <span class="label">Team recommendation</span>
+                        </div>
+                    </div>
+                    <div class="hero-foot" id="resourceHeroFoot">Both reviewed resources are recommended for future projects.</div>
+                </article>
+                <div class="mini-grid">
+                    <article class="mini-kpi green">
+                        <div class="label">Future project fit</div>
+                        <div class="value" id="futureRate">100%</div>
+                        <div class="sub">Positive project-lead recommendation</div>
+                    </article>
+                    <article class="mini-kpi orange">
+                        <div class="label">Resources represented</div>
+                        <div class="value" id="uniqueResources">2</div>
+                        <div class="sub">Distinct roster members reviewed</div>
+                    </article>
+                    <article class="mini-kpi gold">
+                        <div class="label">Top rating</div>
+                        <div class="value" id="resourceTopRating">Very good</div>
+                        <div class="sub">Most common competency response</div>
+                    </article>
+                    <article class="mini-kpi">
+                        <div class="label">Projects represented</div>
+                        <div class="value" id="resourceProjects">1</div>
+                        <div class="sub">Normalized project count</div>
+                    </article>
+                </div>
+            </div>
+
+            <h2 class="section-label">Performance profile</h2>
+            <div class="chart-grid">
+                <article class="chart-card">
+                    <div class="chart-title">Average resource competency score</div>
+                    <div class="chart-subtitle">Rating scale: Poor 1 · Fair 2 · Good 3 · Very good 4 · Excellent 5</div>
+                    <div class="chart-wrap"><canvas id="resourceCompetencyChart"></canvas></div>
+                </article>
+                <article class="chart-card">
+                    <div class="chart-title">Future project recommendation</div>
+                    <div class="chart-subtitle">Share of project-lead responses</div>
+                    <div class="chart-wrap"><canvas id="resourceRecommendChart"></canvas></div>
+                </article>
+            </div>
+
+            <h2 class="section-label">Roster detail</h2>
+            <article class="table-card">
+                <div class="table-header">
+                    <h3>Reviewed resources</h3>
+                    <span class="count-pill" id="resourceTableCount">2 records</span>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Resource</th>
+                                <th>Project</th>
+                                <th>Track</th>
+                                <th>Engagement dates</th>
+                                <th>Avg competency</th>
+                                <th>Future fit</th>
+                                <th>Team score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resourceTableBody"></tbody>
+                    </table>
+                </div>
+            </article>
+
+            <h2 class="section-label">How to read this view</h2>
+            <article class="guide-card">
+                <div class="guide-head">
+                    <h3>Card guide</h3>
+                    <p>What each card measures, how it is calculated, and what to check before quoting it. Every value responds to the filters at the top of the page.</p>
+                </div>
+                <div class="guide-grid">
+                    <div class="guide-item">
+                        <div class="guide-term">Reviews <span class="guide-where">Snapshot</span></div>
+                        <p class="guide-desc">Counts project-lead submissions, not people. One submission covers one resource for one engagement window, so a resource reviewed twice adds two reviews.</p>
+                        <p class="guide-now">Now showing: <strong id="resourceGuideReviews">2 reviews from 2 resources</strong></p>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-term">Competency score <span class="guide-where">Snapshot</span></div>
+                        <p class="guide-desc">Each competency answer becomes a number (Poor 1, Fair 2, Good 3, Very good 4, Excellent 5), then all six competencies across all filtered reviews are averaged into one figure out of 5.0.</p>
+                        <p class="guide-now">Now showing: <strong id="resourceGuideScore">4.0 of 5.0</strong></p>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-term">Team recommendation <span class="guide-where">Snapshot</span></div>
+                        <p class="guide-desc">Averages the 0–10 answer to how likely the lead is to recommend working with this engagement team. Read it as a likelihood rating on its own scale, not as a net promoter score.</p>
+                        <p class="guide-now">Now showing: <strong id="resourceGuideTeam">8.0 of 10</strong></p>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-term">Future project fit <span class="guide-where">KPI card</span></div>
+                        <p class="guide-desc">The share of filtered reviews where the lead would take the resource onto another project. Anything below 100% should be traced to a specific row in the table before it is acted on.</p>
+                        <p class="guide-now">Now showing: <strong id="resourceGuideFit">2 of 2 recommended</strong></p>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-term">Represented counts <span class="guide-where">KPI cards</span></div>
+                        <p class="guide-desc">Distinct resources and distinct projects behind the reviews. Comparing these against the review count separates feedback volume from how much of the roster is actually covered.</p>
+                        <p class="guide-now">Now showing: <strong id="resourceGuideCoverage">2 resources across 1 project</strong></p>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-term">Top rating <span class="guide-where">KPI card</span></div>
+                        <p class="guide-desc">The rating wording chosen most often across every competency answer. It shows where the ratings cluster, which the averaged score alone can hide.</p>
+                        <p class="guide-now">Now showing: <strong id="resourceGuideTopRating">Very good</strong></p>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-term">Competency chart <span class="guide-where">Chart</span></div>
+                        <p class="guide-desc">One bar per competency, averaged across filtered reviews on the same 1–5 scale. Bars are green from 4.5, orange from 4.0, and gold below 4.0, so softer competencies stand out without reading the axis.</p>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-term">Recommendation donut <span class="guide-where">Chart</span></div>
+                        <p class="guide-desc">Splits filtered reviews into recommended and not recommended for a future project. The centre figure repeats the future-fit percentage so the chart can be read on its own.</p>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-term">Reviewed resources <span class="guide-where">Table</span></div>
+                        <p class="guide-desc">One row per submission with the engagement window, that review's own competency average, and its team score. Ratings are lead-reported and free-text comments are deliberately excluded, so treat the numbers as directional.</p>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="page" id="engagementPage">
+            <div class="page-intro">
+                <div>
+                    <div class="eyebrow">Engagement perspective</div>
+                    <h1>Engagement experience</h1>
+                    <p class="intro-copy">Internal-resource feedback on project conditions, client experience, growth, and delivery friction.</p>
+                </div>
+                <div class="sample-note">Small sample · <span id="engagementSample">2</span> responses</div>
+            </div>
+
+            <div class="summary-grid">
+                <article class="hero-card">
+                    <h2>Engagement experience snapshot</h2>
+                    <div class="hero-stats">
+                        <div class="hero-stat positive">
+                            <span class="value" id="engagementCount">2</span>
+                            <span class="label">Responses</span>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="value" id="engagementAvg">4.4</span>
+                            <span class="label">Experience score</span>
+                        </div>
+                        <div class="hero-stat accent">
+                            <span class="value" id="projectRecScore">9.0</span>
+                            <span class="label">Project recommendation</span>
+                        </div>
+                    </div>
+                    <div class="hero-foot" id="engagementHeroFoot">Every respondent would work with this client again.</div>
+                </article>
+                <div class="mini-grid">
+                    <article class="mini-kpi green">
+                        <div class="label">Work with client again</div>
+                        <div class="value" id="workAgainRate">100%</div>
+                        <div class="sub">Positive internal-resource response</div>
+                    </article>
+                    <article class="mini-kpi orange">
+                        <div class="label">Resources represented</div>
+                        <div class="value" id="engagementResources">2</div>
+                        <div class="sub">Distinct roster members responding</div>
+                    </article>
+                    <article class="mini-kpi gold">
+                        <div class="label">Strongest dimension</div>
+                        <div class="value" id="strongestDimension">5.0</div>
+                        <div class="sub" id="strongestDimensionLabel">Client professionalism</div>
+                    </article>
+                    <article class="mini-kpi">
+                        <div class="label">Challenges reported</div>
+                        <div class="value" id="challengeCount">3</div>
+                        <div class="sub">Selected challenge signals</div>
+                    </article>
+                </div>
+            </div>
+
+            <h2 class="section-label">Experience profile</h2>
+            <div class="chart-grid">
+                <article class="chart-card">
+                    <div class="chart-title">Average engagement competency score</div>
+                    <div class="chart-subtitle">Rating scale: Poor 1 · Fair 2 · Good 3 · Very good 4 · Excellent 5</div>
+                    <div class="chart-wrap"><canvas id="engagementCompetencyChart"></canvas></div>
+                </article>
+                <article class="chart-card">
+                    <div class="chart-title">Reported engagement challenges</div>
+                    <div class="chart-subtitle">Multiple selections allowed per response</div>
+                    <div class="chart-wrap"><canvas id="challengeChart"></canvas></div>
+                </article>
+            </div>
+
+            <h2 class="section-label">Roster context</h2>
+            <article class="table-card">
+                <div class="table-header">
+                    <h3>Internal-resource responses</h3>
+                    <span class="count-pill" id="engagementTableCount">2 records</span>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Resource</th>
+                                <th>Role</th>
+                                <th>Project</th>
+                                <th>Track</th>
+                                <th>Team lead</th>
+                                <th>Avg experience</th>
+                                <th>Work again</th>
+                                <th>Project score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="engagementTableBody"></tbody>
+                    </table>
+                </div>
+            </article>
+
+            <h2 class="section-label">How to read this view</h2>
+            <article class="guide-card">
+                <div class="guide-head">
+                    <h3>Card guide</h3>
+                    <p>What each card measures, how it is calculated, and what to check before quoting it. Every value responds to the filters at the top of the page.</p>
+                </div>
+                <div class="guide-grid">
+                    <div class="guide-item">
+                        <div class="guide-term">Responses <span class="guide-where">Snapshot</span></div>
+                        <p class="guide-desc">Counts internal-resource submissions. A resource who submitted more than once is kept as separate responses rather than merged, so this can exceed the number of people.</p>
+                        <p class="guide-now">Now showing: <strong id="engagementGuideResponses">2 responses from 2 resources</strong></p>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-term">Experience score <span class="guide-where">Snapshot</span></div>
+                        <p class="guide-desc">Each answer becomes a number (Poor 1, Fair 2, Good 3, Very good 4, Excellent 5), then all seven engagement dimensions across all filtered responses are averaged into one figure out of 5.0.</p>
+                        <p class="guide-now">Now showing: <strong id="engagementGuideScore">4.4 of 5.0</strong></p>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-term">Project recommendation <span class="guide-where">Snapshot</span></div>
+                        <p class="guide-desc">Averages the 0–10 answer to how likely the resource is to recommend working on this project. It is a separate question from the ratings, so it can move independently of the experience score.</p>
+                        <p class="guide-now">Now showing: <strong id="engagementGuideProject">9.0 of 10</strong></p>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-term">Work with client again <span class="guide-where">KPI card</span></div>
+                        <p class="guide-desc">The share of filtered responses willing to return to this client. Read it next to the challenge chart, since a resource can report friction and still say yes.</p>
+                        <p class="guide-now">Now showing: <strong id="engagementGuideWorkAgain">2 of 2 would return</strong></p>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-term">Strongest dimension <span class="guide-where">KPI card</span></div>
+                        <p class="guide-desc">The highest-scoring of the seven dimensions under the current filters, with its score. Use it to name what the next roster should preserve, not as an overall verdict.</p>
+                        <p class="guide-now">Now showing: <strong id="engagementGuideStrongest">Client professionalism at 5.0</strong></p>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-term">Challenges reported <span class="guide-where">KPI card</span></div>
+                        <p class="guide-desc">Counts selections, not people. The question allows several answers per response, so this total can be higher than the response count and is not a percentage.</p>
+                        <p class="guide-now">Now showing: <strong id="engagementGuideChallengeCount">3 selections across 2 responses</strong></p>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-term">Competency chart <span class="guide-where">Chart</span></div>
+                        <p class="guide-desc">One bar per engagement dimension, averaged across filtered responses on the same 1–5 scale. Bars are green from 4.5, orange from 4.0, and gold below 4.0, so weaker conditions stand out immediately.</p>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-term">Challenge chart <span class="guide-where">Chart</span></div>
+                        <p class="guide-desc">Bar length is the number of responses naming that challenge, sorted most to least frequent. A challenge named by most respondents is the practical watch item for the next engagement.</p>
+                        <p class="guide-now">Now showing: <strong id="engagementGuideTopChallenge">Lack of clear communication in 2 of 2</strong></p>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-term">Internal-resource responses <span class="guide-where">Table</span></div>
+                        <p class="guide-desc">One row per submission with track, team lead, that response's own experience average, and its project score. Emails and free-text comments are excluded, so the table stays shareable.</p>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <footer>
+        <span>Source: Offboarding Feedback – Engagement &amp; Resource Experience 1.xlsx</span>
+        <span>Data as of: 03 Sep 2026 · 4 responses</span>
+    </footer>
+
+    <script>
+        const RATING_MAP = { "Poor": 1, "Fair": 2, "Good": 3, "Very good": 4, "Excellent": 5 };
+        const COLORS = {
+            orange: "#d04a02",
+            orangeSoft: "#e8600a",
+            burgundy: "#7c2d12",
+            green: "#16a34a",
+            red: "#dc2626",
+            gold: "#ca8a04",
+            slate: "#475569",
+            pale: "#e2e8f0"
+        };
+
+        const RESOURCE_DATA = [
+            {
+                completed: "2026-09-03", respondentRole: "Project Lead",
+                resource: "Jonathan Italia", reviewerRole: "Offshore QA Manager",
+                project: "Preferred Mutual Insurance Company (PMIC)", track: "Digital",
+                start: "2026-01-05", end: "2026-07-24",
+                ratings: { "Technical expertise": "Very good", "Quality": "Very good", "Communication": "Very good", "Collaboration": "Very good", "Ownership": "Very good", "Overall satisfaction": "Very good" },
+                futureFit: "Yes", teamRecommendation: 8
+            },
+            {
+                completed: "2026-09-03", respondentRole: "Project Lead",
+                resource: "Carl Joseph Villanueva", reviewerRole: "Offshore QA Manager",
+                project: "Preferred Mutual Insurance Company (PMIC)", track: "Digital",
+                start: "2025-12-01", end: "2026-07-24",
+                ratings: { "Technical expertise": "Very good", "Quality": "Very good", "Communication": "Very good", "Collaboration": "Very good", "Ownership": "Very good", "Overall satisfaction": "Very good" },
+                futureFit: "Yes", teamRecommendation: 8
+            }
+        ];
+
+        const ENGAGEMENT_DATA = [
+            {
+                completed: "2026-08-24", respondentRole: "Internal Resource",
+                resource: "Carl Joseph Villanueva", role: "Digital QA",
+                project: "Preferred Mutual Insurance Company (PMIC)", lead: "Manjula BR",
+                track: "PolicyCenter / Digital", start: "2025-12-03", end: "2026-07-24",
+                ratings: { "Scope clarity": "Good", "Manager support": "Very good", "Work-life balance": "Excellent", "Skills growth": "Excellent", "Client direction": "Very good", "Client professionalism": "Excellent", "Overall satisfaction": "Very good" },
+                workAgain: "Yes", challenges: ["Lack of clear communication"], projectRecommendation: 8
+            },
+            {
+                completed: "2026-08-24", respondentRole: "Internal Resource",
+                resource: "Jonathan Italia", role: "Digital QA",
+                project: "Preferred Mutual Insurance Company (PMIC)", lead: "Manjula BR",
+                track: "Digital", start: "2026-01-05", end: "2026-07-24",
+                ratings: { "Scope clarity": "Very good", "Manager support": "Excellent", "Work-life balance": "Very good", "Skills growth": "Very good", "Client direction": "Very good", "Client professionalism": "Excellent", "Overall satisfaction": "Excellent" },
+                workAgain: "Yes", challenges: ["Unrealistic deadlines", "Lack of clear communication"], projectRecommendation: 10
+            }
+        ];
+
+        const state = { activeTab: "resource", charts: {} };
+        const projectFilter = document.getElementById("projectFilter");
+        const trackFilter = document.getElementById("trackFilter");
+        const roleFilter = document.getElementById("roleFilter");
+
+        function mean(values) {
+            return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+        }
+        function percent(part, total) {
+            return total ? `${Math.round(part / total * 100)}%` : "—";
+        }
+        function countLabel(count, singular) {
+            return `${count} ${singular}${count === 1 ? "" : "s"}`;
+        }
+        function rowAverage(row) {
+            return mean(Object.values(row.ratings).map(value => RATING_MAP[value]));
+        }
+        function unique(values) {
+            return [...new Set(values.filter(Boolean))];
+        }
+        function formatDateRange(start, end) {
+            const opts = { day: "2-digit", month: "short", year: "numeric" };
+            return `${new Date(`${start}T00:00:00`).toLocaleDateString("en-GB", opts)} – ${new Date(`${end}T00:00:00`).toLocaleDateString("en-GB", opts)}`;
+        }
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+        }
+        function matchesFilters(row) {
+            const projectMatch = projectFilter.value === "All" || row.project === projectFilter.value;
+            const trackMatch = trackFilter.value === "All" || row.track === trackFilter.value;
+            const roleMatch = roleFilter.value === "All" || row.respondentRole === roleFilter.value;
+            return projectMatch && trackMatch && roleMatch;
+        }
+        function filteredResourceData() { return RESOURCE_DATA.filter(matchesFilters); }
+        function filteredEngagementData() { return ENGAGEMENT_DATA.filter(matchesFilters); }
+
+        function populateFilters() {
+            const allRows = [...RESOURCE_DATA, ...ENGAGEMENT_DATA];
+            unique(allRows.map(row => row.project)).sort().forEach(value => projectFilter.add(new Option(value, value)));
+            unique(allRows.map(row => row.track)).sort().forEach(value => trackFilter.add(new Option(value, value)));
+        }
+        function chartDefaults() {
+            Chart.defaults.font.family = "Inter, Segoe UI, sans-serif";
+            Chart.defaults.color = COLORS.slate;
+            Chart.defaults.animation.duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 350;
+        }
+        function destroyChart(key) {
+            if (state.charts[key]) state.charts[key].destroy();
+        }
+        function competencyAverages(data) {
+            if (!data.length) return { labels: [], values: [] };
+            const labels = Object.keys(data[0].ratings);
+            return {
+                labels,
+                values: labels.map(label => mean(data.map(row => RATING_MAP[row.ratings[label]])))
+            };
+        }
+        function horizontalScoreChart(key, canvasId, labels, values) {
+            destroyChart(key);
+            state.charts[key] = new Chart(document.getElementById(canvasId), {
+                type: "bar",
+                data: {
+                    labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: values.map(value => value >= 4.5 ? COLORS.green : value >= 4 ? COLORS.orange : COLORS.gold),
+                        borderRadius: 5,
+                        barThickness: 18
+                    }]
+                },
+                options: {
+                    indexAxis: "y",
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: context => `${context.raw.toFixed(1)} / 5.0` } }
+                    },
+                    scales: {
+                        x: { min: 0, max: 5, ticks: { stepSize: 1 }, grid: { color: "#edf2f7" } },
+                        y: { grid: { display: false }, ticks: { font: { size: 10, weight: "600" } } }
+                    }
+                }
+            });
+        }
+
+        function renderResource() {
+            const data = filteredResourceData();
+            const ratings = data.flatMap(row => Object.values(row.ratings).map(value => RATING_MAP[value]));
+            const avg = mean(ratings);
+            const recommended = data.filter(row => row.futureFit === "Yes").length;
+            const score = mean(data.map(row => row.teamRecommendation));
+            const ratingMode = data.length
+                ? Object.entries(data.flatMap(row => Object.values(row.ratings)).reduce((acc, item) => ((acc[item] = (acc[item] || 0) + 1), acc), {})).sort((a,b) => b[1] - a[1])[0][0]
+                : "—";
+
+            document.getElementById("resourceSample").textContent = data.length;
+            document.getElementById("resourceCount").textContent = data.length;
+            document.getElementById("resourceAvg").textContent = data.length ? avg.toFixed(1) : "—";
+            document.getElementById("resourceRecScore").textContent = data.length ? score.toFixed(1) : "—";
+            const resourceTotal = unique(data.map(row => row.resource)).length;
+            const projectTotal = unique(data.map(row => row.project)).length;
+
+            document.getElementById("futureRate").textContent = percent(recommended, data.length);
+            document.getElementById("uniqueResources").textContent = resourceTotal;
+            document.getElementById("resourceTopRating").textContent = ratingMode;
+            document.getElementById("resourceProjects").textContent = projectTotal;
+            document.getElementById("resourceHeroFoot").textContent = data.length
+                ? `${recommended} of ${data.length} reviewed resources are recommended for future projects.`
+                : "No resource reviews match the current filters.";
+            document.getElementById("resourceTableCount").textContent = countLabel(data.length, "record");
+            document.getElementById("resourceGuideReviews").textContent = data.length
+                ? `${countLabel(data.length, "review")} from ${countLabel(resourceTotal, "resource")}`
+                : "No reviews match the current filters";
+            document.getElementById("resourceGuideScore").textContent = data.length ? `${avg.toFixed(1)} of 5.0` : "No ratings in view";
+            document.getElementById("resourceGuideTeam").textContent = data.length ? `${score.toFixed(1)} of 10` : "No ratings in view";
+            document.getElementById("resourceGuideFit").textContent = data.length
+                ? `${recommended} of ${data.length} recommended`
+                : "No reviews in view";
+            document.getElementById("resourceGuideCoverage").textContent = data.length
+                ? `${countLabel(resourceTotal, "resource")} across ${countLabel(projectTotal, "project")}`
+                : "No coverage in view";
+            document.getElementById("resourceGuideTopRating").textContent = data.length ? ratingMode : "No ratings in view";
+
+            const body = document.getElementById("resourceTableBody");
+            body.innerHTML = data.length ? data.map(row => `
+                <tr>
+                    <td>${escapeHtml(row.resource)}</td>
+                    <td>${escapeHtml(row.project)}</td>
+                    <td>${escapeHtml(row.track)}</td>
+                    <td>${escapeHtml(formatDateRange(row.start, row.end))}</td>
+                    <td><span class="score-pill">${rowAverage(row).toFixed(1)}</span></td>
+                    <td><span class="status-pill">${escapeHtml(row.futureFit)}</span></td>
+                    <td>${row.teamRecommendation.toFixed(1)} / 10</td>
+                </tr>`).join("") : `<tr><td colspan="7" class="empty-state">No records match the current filters.</td></tr>`;
+
+            const competencies = competencyAverages(data);
+            horizontalScoreChart("resourceCompetency", "resourceCompetencyChart", competencies.labels, competencies.values);
+
+            destroyChart("resourceRecommend");
+            state.charts.resourceRecommend = new Chart(document.getElementById("resourceRecommendChart"), {
+                type: "doughnut",
+                data: {
+                    labels: ["Recommended", "Not recommended"],
+                    datasets: [{ data: data.length ? [recommended, data.length - recommended] : [0, 1], backgroundColor: [COLORS.green, COLORS.pale], borderWidth: 0 }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: "68%",
+                    plugins: {
+                        legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 8, padding: 16, font: { size: 10 } } },
+                        tooltip: { enabled: data.length > 0 }
+                    }
+                },
+                plugins: [{
+                    id: "resourceCenterLabel",
+                    afterDraw(chart) {
+                        const { ctx, chartArea } = chart;
+                        if (!chartArea) return;
+                        ctx.save();
+                        ctx.fillStyle = COLORS.dark || "#1e293b";
+                        ctx.font = "800 27px Inter";
+                        ctx.textAlign = "center";
+                        ctx.fillText(percent(recommended, data.length), (chartArea.left + chartArea.right) / 2, (chartArea.top + chartArea.bottom) / 2 + 7);
+                        ctx.restore();
+                    }
+                }]
+            });
+        }
+
+        function renderEngagement() {
+            const data = filteredEngagementData();
+            const ratings = data.flatMap(row => Object.values(row.ratings).map(value => RATING_MAP[value]));
+            const avg = mean(ratings);
+            const workAgain = data.filter(row => row.workAgain === "Yes").length;
+            const projectScore = mean(data.map(row => row.projectRecommendation));
+            const challenges = data.flatMap(row => row.challenges);
+            const challengeCounts = challenges.reduce((acc, item) => ((acc[item] = (acc[item] || 0) + 1), acc), {});
+            const competencies = competencyAverages(data);
+            const strongestIndex = competencies.values.length ? competencies.values.indexOf(Math.max(...competencies.values)) : -1;
+            const strongestLabel = strongestIndex >= 0 ? competencies.labels[strongestIndex] : "No data";
+            const strongestValue = strongestIndex >= 0 ? competencies.values[strongestIndex] : 0;
+
+            document.getElementById("engagementSample").textContent = data.length;
+            document.getElementById("engagementCount").textContent = data.length;
+            document.getElementById("engagementAvg").textContent = data.length ? avg.toFixed(1) : "—";
+            document.getElementById("projectRecScore").textContent = data.length ? projectScore.toFixed(1) : "—";
+            const engagementResourceTotal = unique(data.map(row => row.resource)).length;
+
+            document.getElementById("workAgainRate").textContent = percent(workAgain, data.length);
+            document.getElementById("engagementResources").textContent = engagementResourceTotal;
+            document.getElementById("strongestDimension").textContent = data.length ? strongestValue.toFixed(1) : "—";
+            document.getElementById("strongestDimensionLabel").textContent = strongestLabel;
+            document.getElementById("challengeCount").textContent = challenges.length;
+            document.getElementById("engagementHeroFoot").textContent = data.length
+                ? `${workAgain} of ${data.length} respondents would work with this client again.`
+                : "No engagement responses match the current filters.";
+            document.getElementById("engagementTableCount").textContent = countLabel(data.length, "record");
+            const topChallenge = Object.entries(challengeCounts).sort((a,b) => b[1] - a[1])[0];
+            document.getElementById("engagementGuideResponses").textContent = data.length
+                ? `${countLabel(data.length, "response")} from ${countLabel(engagementResourceTotal, "resource")}`
+                : "No responses match the current filters";
+            document.getElementById("engagementGuideScore").textContent = data.length ? `${avg.toFixed(1)} of 5.0` : "No ratings in view";
+            document.getElementById("engagementGuideProject").textContent = data.length ? `${projectScore.toFixed(1)} of 10` : "No ratings in view";
+            document.getElementById("engagementGuideWorkAgain").textContent = data.length
+                ? `${workAgain} of ${data.length} would return`
+                : "No responses in view";
+            document.getElementById("engagementGuideStrongest").textContent = data.length
+                ? `${strongestLabel} at ${strongestValue.toFixed(1)}`
+                : "No dimensions in view";
+            document.getElementById("engagementGuideChallengeCount").textContent = data.length
+                ? `${countLabel(challenges.length, "selection")} across ${countLabel(data.length, "response")}`
+                : "No responses in view";
+            document.getElementById("engagementGuideTopChallenge").textContent = topChallenge
+                ? `${topChallenge[0]} in ${topChallenge[1]} of ${data.length}`
+                : "No challenge selections in view";
+
+            const body = document.getElementById("engagementTableBody");
+            body.innerHTML = data.length ? data.map(row => `
+                <tr>
+                    <td>${escapeHtml(row.resource)}</td>
+                    <td>${escapeHtml(row.role)}</td>
+                    <td>${escapeHtml(row.project)}</td>
+                    <td>${escapeHtml(row.track)}</td>
+                    <td>${escapeHtml(row.lead)}</td>
+                    <td><span class="score-pill">${rowAverage(row).toFixed(1)}</span></td>
+                    <td><span class="status-pill">${escapeHtml(row.workAgain)}</span></td>
+                    <td>${row.projectRecommendation.toFixed(1)} / 10</td>
+                </tr>`).join("") : `<tr><td colspan="8" class="empty-state">No records match the current filters.</td></tr>`;
+
+            horizontalScoreChart("engagementCompetency", "engagementCompetencyChart", competencies.labels, competencies.values);
+
+            const sortedChallenges = Object.entries(challengeCounts).sort((a,b) => b[1] - a[1]);
+            destroyChart("challenges");
+            state.charts.challenges = new Chart(document.getElementById("challengeChart"), {
+                type: "bar",
+                data: {
+                    labels: sortedChallenges.length ? sortedChallenges.map(item => item[0]) : ["No challenge data"],
+                    datasets: [{
+                        data: sortedChallenges.length ? sortedChallenges.map(item => item[1]) : [0],
+                        backgroundColor: [COLORS.orange, COLORS.gold, COLORS.burgundy],
+                        borderRadius: 5,
+                        barThickness: 30
+                    }]
+                },
+                options: {
+                    indexAxis: "y",
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: context => `${context.raw} response${context.raw === 1 ? "" : "s"}` } } },
+                    scales: {
+                        x: { beginAtZero: true, ticks: { precision: 0, stepSize: 1 }, grid: { color: "#edf2f7" } },
+                        y: { grid: { display: false }, ticks: { font: { size: 10, weight: "600" } } }
+                    }
+                }
+            });
+        }
+
+        function renderAll() {
+            renderResource();
+            renderEngagement();
+        }
+        function switchTab(tab) {
+            state.activeTab = tab;
+            document.querySelectorAll(".tab-btn").forEach(button => button.classList.toggle("active", button.dataset.tab === tab));
+            document.getElementById("resourcePage").classList.toggle("active", tab === "resource");
+            document.getElementById("engagementPage").classList.toggle("active", tab === "engagement");
+            requestAnimationFrame(() => Object.values(state.charts).forEach(chart => chart.resize()));
+        }
+
+        document.querySelectorAll(".tab-btn").forEach(button => button.addEventListener("click", () => switchTab(button.dataset.tab)));
+        [projectFilter, trackFilter].forEach(select => select.addEventListener("change", renderAll));
+        roleFilter.addEventListener("change", () => {
+            if (roleFilter.value === "Project Lead") switchTab("resource");
+            if (roleFilter.value === "Internal Resource") switchTab("engagement");
+            renderAll();
+        });
+        document.getElementById("clearFilters").addEventListener("click", () => {
+            projectFilter.value = "All";
+            trackFilter.value = "All";
+            roleFilter.value = "All";
+            renderAll();
+        });
+
+        populateFilters();
+        chartDefaults();
+        renderAll();
+    </script>
+</body>
+</html>
